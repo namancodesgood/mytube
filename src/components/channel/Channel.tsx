@@ -25,48 +25,68 @@ const Channel: FC<Props> = ({ channelId }) => {
     (store) => store.globalSlice.currentChannelTab
   );
 
-  if (status === "loading") return;
+  if (status === "loading") {
+    return (
+      <div className="w-full max-w-[128.4rem] mx-auto px-[2.4rem] pt-[1.6rem]">
+        <div className="w-full aspect-[6.2/1] rounded-xl shimmer" />
+        <div className="flex items-center gap-[1.6rem] mt-[1.6rem]">
+          <div className="w-[16rem] h-[16rem] shrink-0 rounded-full shimmer" />
+          <div className="flex flex-col gap-[1.2rem] w-full">
+            <div className="h-[3.6rem] w-[30%] rounded shimmer" />
+            <div className="h-[1.4rem] w-[40%] rounded shimmer" />
+            <div className="h-[3.6rem] w-[10rem] rounded-full shimmer" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const channel = data?.items?.[0];
 
   if (!channel) {
-    return <p className="text-2xl p-6">Couldn't load this channel.</p>;
+    return <p className="p-[2.4rem] text-[1.4rem]">Couldn't load this channel.</p>;
   }
 
   const { brandingSettings, snippet, statistics, contentDetails } = channel;
 
   const { videoCount, viewCount, subscriberCount, hiddenSubscriberCount } =
     statistics;
-  const { title, description, customUrl, publishedAt, thumbnails } = snippet;
+  const { title, description, customUrl, publishedAt, thumbnails, country } =
+    snippet;
   const banner = brandingSettings?.image?.bannerExternalUrl;
 
   return (
-    <div className="w-full overflow-y-auto px-6 pb-10">
-      {banner && <ChannelBanner src={banner} alt={title} />}
-      <ChannelMetadata
-        title={title}
-        avatar={thumbnails.medium.url}
-        description={description}
-        customUrl={customUrl}
-        publishedAt={publishedAt}
-        videoCount={videoCount}
-        viewCount={viewCount}
-        subscriberCount={subscriberCount}
-        hiddenSubscriberCount={hiddenSubscriberCount}
-      />
-      {/* <p className="text-2xl">{JSON.stringify(statistics)}</p> */}
-      <Tabs>
-        <TabSections sections={["Videos", "Playlists"]} selected={selectedTab} />
-        <TabContent
-          content={[
-            <ChannelVideos
-              uploadsPlaylistId={contentDetails.relatedPlaylists.uploads}
-            />,
-            <ChannelPlaylists channelId={channelId} />,
-          ]}
-          selected={selectedTab}
+    <div className="w-full overflow-y-auto">
+      <div className="max-w-[128.4rem] mx-auto px-[2.4rem] pt-[1.6rem] pb-10">
+        {banner && <ChannelBanner src={banner} alt="" />}
+        <ChannelMetadata
+          title={title}
+          avatar={thumbnails.medium.url}
+          description={description}
+          customUrl={customUrl}
+          publishedAt={publishedAt}
+          country={country}
+          videoCount={videoCount}
+          viewCount={viewCount}
+          subscriberCount={subscriberCount}
+          hiddenSubscriberCount={hiddenSubscriberCount}
         />
-      </Tabs>
+        <Tabs>
+          <TabSections
+            sections={["Videos", "Playlists"]}
+            selected={selectedTab}
+          />
+          <TabContent
+            content={[
+              <ChannelVideos
+                uploadsPlaylistId={contentDetails.relatedPlaylists.uploads}
+              />,
+              <ChannelPlaylists channelId={channelId} />,
+            ]}
+            selected={selectedTab}
+          />
+        </Tabs>
+      </div>
     </div>
   );
 };

@@ -3,17 +3,19 @@ import { ReactNode, useCallback } from "react";
 type Props = {
   children?: ReactNode;
   className?: string;
+  label?: string;
   callback: () => void;
 };
 
-const PrimaryButton = ({ children, className = "", callback }: Props) => {
+const PrimaryButton = ({ children, className = "", label, callback }: Props) => {
   const handleClick = useCallback(() => {
     callback();
   }, [callback]);
 
   return (
     <button
-      className={`${className} p-2 hover-bg`}
+      aria-label={label}
+      className={`${className} p-[0.8rem] hover-bg`}
       onClick={handleClick}
     >
       {children}

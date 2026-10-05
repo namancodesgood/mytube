@@ -1,17 +1,16 @@
-import { FC } from "react";
+import { FC, useState } from "react";
 
 import { Link, useParams } from "react-router-dom";
 import { useQuery } from "react-query";
 
-import { DotIcon } from "lucide-react";
+import { ThumbsDownIcon, ThumbsUpIcon } from "lucide-react";
+
+import CompactVideoCard from "@/components/video-card/CompactVideoCard";
+import VideoComments from "@/components/watch/VideoComments";
 
 import { VideoData } from "@/interfaces/VideoData";
-import {
-  fetchChannelDetails,
-  formatTotalCount,
-  getFormattedDuration,
-  ytFetch,
-} from "@/utils/helper";
+import { fetchChannelDetails, fetchUploads, ytFetch } from "@/utils/helper";
+import { formatTotalCount, getFormattedDuration } from "@/utils/format";
 
 const fetchVideo = async (videoId: string) => {
   const data = await ytFetch<VideoData>("videos", {
@@ -21,11 +20,29 @@ const fetchVideo = async (videoId: string) => {
   return data.items?.[0] ?? null;
 };
 
-const exactCount = (count?: string) =>
-  count ? Number(count).toLocaleString() : "Hidden";
+const formatDate = (timestamp: string) =>
+  new Date(timestamp).toLocaleDateString("en", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
 
-const VideoDetailsPage: FC = () => {
-  const { videoId = "" } = useParams();
+const WatchShimmer = () => (
+  <div className="w-full px-[2.4rem] pt-[2.4rem]">
+    <div className="max-w-[128rem]">
+      <div className="aspect-video w-full rounded-xl shimmer" />
+      <div className="h-[2.4rem] w-[60%] rounded shimmer mt-[1.6rem]" />
+      <div className="flex items-center gap-[1.2rem] mt-[1.6rem]">
+        <div className="w-[4rem] h-[4rem] rounded-full shimmer" />
+        <div className="h-[1.6rem] w-[20rem] rounded shimmer" />
+      </div>
+      <div className="h-[10rem] w-full rounded-xl shimmer mt-[1.6rem]" />
+    </div>
+  </div>
+);
+
+const Watch: FC<{ videoId: string }> = ({ videoId }) => {
+  const [isExpanded, setExpanded] = useState(false);
 
   const { data: video, status } = useQuery(["video", videoId], () =>
     fetchVideo(videoId)
@@ -36,113 +53,212 @@ const VideoDetailsPage: FC = () => {
     () => fetchChannelDetails(channelId),
     { enabled: !!channelId }
   );
+  const channel = channelData?.items?.[0];
+  const uploadsId = channel?.contentDetails.relatedPlaylists.uploads ?? "";
+  const { data: uploads } = useQuery(
+    ["channelUploads", uploadsId],
+    () => fetchUploads(uploadsId),
+    { enabled: !!uploadsId }
+  );
 
-  if (status === "loading") {
-    return (
-      <div className="w-full px-6">
-        <div className="aspect-video w-full max-w-[128rem] mx-auto shimmer" />
-      </div>
-    );
-  }
+  if (status === "loading") return <WatchShimmer />;
 
   if (!video) {
-    return <p className="text-2xl p-6">Couldn't load this video.</p>;
+    return <p className="p-[2.4rem] text-[1.4rem]">Couldn't load this video.</p>;
   }
 
   const { snippet, statistics, contentDetails } = video;
-  const channel = channelData?.items?.[0];
-
-  const stats = [
-    ["Views", exactCount(statistics.viewCount)],
-    ["Likes", exactCount(statistics.likeCount)],
-    ["Comments", exactCount(statistics.commentCount)],
-    ["Duration", getFormattedDuration(contentDetails.duration)],
-    ["Published", new Date(snippet.publishedAt).toLocaleDateString()],
-    ["Quality", contentDetails.definition.toUpperCase()],
-    ["Captions", contentDetails.caption === "true" ? "Yes" : "No"],
-  ];
+  const moreVideos = uploads?.filter(({ id }) => id !== videoId) ?? [];
+  const facts = [
+    getFormattedDuration(contentDetails.duration),
+    contentDetails.definition.toUpperCase(),
+    contentDetails.caption === "true" ? "CC" : "",
+  ].filter(Boolean);
 
   return (
-    <div className="w-full overflow-y-auto px-6 pb-10">
-      <div className="max-w-[128rem] mx-auto">
-        <iframe
-          src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
-          title={snippet.title}
-          className="w-full aspect-video rounded-xl"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-          allowFullScreen
-        />
-        <h1 className="text-4xl font-bold mt-4">{snippet.title}</h1>
+    <div className="w-full overflow-y-auto">
+      <div className="flex flex-col xl:flex-row gap-[2.4rem] max-w-[176rem] mx-auto px-[2.4rem] pt-[2.4rem] pb-10">
+        <main className="flex-1 min-w-0">
+          <div className="aspect-video w-full overflow-hidden rounded-xl bg-black">
+            <iframe
+              src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
+              title={snippet.title}
+              className="w-full h-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+            />
+          </div>
+          <h1 className="text-[2rem] leading-[2.8rem] font-bold mt-[1.2rem]">
+            {snippet.title}
+          </h1>
 
-        {channel && (
-          <section className="flex items-center gap-6 mt-6 bg-[#212121] rounded-xl p-6">
-            <Link to={`/channel/${channel.id}`} className="shrink-0">
-              <img
-                src={channel.snippet.thumbnails.medium.url}
-                alt={channel.snippet.title}
-                className="w-28 h-28 rounded-full"
-              />
-            </Link>
-            <div className="flex flex-col gap-1 text-xl text-slate-300 min-w-0">
-              <Link
-                to={`/channel/${channel.id}`}
-                className="text-3xl font-bold text-white"
-              >
-                {channel.snippet.title}
-              </Link>
-              <span className="flex flex-wrap items-center">
-                {channel.snippet.customUrl}
-                {!channel.statistics.hiddenSubscriberCount && (
-                  <>
-                    <DotIcon />
-                    {formatTotalCount(channel.statistics.subscriberCount)}
-                    &nbsp;subscribers
-                  </>
+          <div className="flex flex-wrap items-center justify-between gap-[1.2rem] mt-[1.2rem]">
+            <div className="flex items-center gap-[1.2rem] min-w-0">
+              <Link to={`/channel/${channelId}`} className="shrink-0">
+                {channel ? (
+                  <img
+                    src={channel.snippet.thumbnails.default.url}
+                    alt={snippet.channelTitle}
+                    className="w-[4rem] h-[4rem] rounded-full"
+                  />
+                ) : (
+                  <div className="w-[4rem] h-[4rem] rounded-full shimmer" />
                 )}
-                <DotIcon />
-                {formatTotalCount(channel.statistics.videoCount)}&nbsp;videos
-                <DotIcon />
-                {formatTotalCount(channel.statistics.viewCount)}&nbsp;views
-              </span>
-              <span>
-                {channel.snippet.country && `${channel.snippet.country} · `}
-                Joined{" "}
-                {new Date(channel.snippet.publishedAt).toLocaleDateString()}
-              </span>
-              <p className="line-clamp-2 text-2xl text-white mt-1">
-                {channel.snippet.description}
-              </p>
-            </div>
-          </section>
-        )}
-
-        <dl className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-4 mt-6">
-          {stats.map(([label, value]) => (
-            <div key={label} className="bg-[#212121] rounded-xl p-4">
-              <dt className="text-lg text-slate-400">{label}</dt>
-              <dd className="text-2xl font-bold">{value}</dd>
-            </div>
-          ))}
-        </dl>
-
-        <div className="bg-[#212121] rounded-xl p-6 mt-6 text-2xl">
-          <p className="whitespace-pre-line break-words">{snippet.description}</p>
-          {snippet.tags && (
-            <div className="flex flex-wrap gap-2 mt-4">
-              {snippet.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="bg-[#303030] rounded-full px-4 py-1 text-xl"
+              </Link>
+              <div className="min-w-0">
+                <Link
+                  to={`/channel/${channelId}`}
+                  className="block text-[1.6rem] leading-[2.2rem] font-medium truncate"
                 >
-                  #{tag}
-                </span>
-              ))}
+                  {snippet.channelTitle}
+                </Link>
+                {channel && !channel.statistics.hiddenSubscriberCount && (
+                  <p className="text-[1.2rem] leading-[1.8rem] text-yt-muted">
+                    {formatTotalCount(channel.statistics.subscriberCount)}{" "}
+                    subscribers
+                  </p>
+                )}
+              </div>
+              <button
+                type="button"
+                title="Coming soon"
+                className="ml-[1.2rem] h-[3.6rem] px-[1.6rem] rounded-full bg-yt-text text-yt-bg text-[1.4rem] font-medium"
+              >
+                Subscribe
+              </button>
             </div>
+            <div className="flex items-center h-[3.6rem] rounded-full bg-yt-surface text-[1.4rem] font-medium">
+              <span
+                className="flex items-center gap-[0.8rem] h-full px-[1.6rem] border-r border-yt-hover"
+                title={
+                  statistics.likeCount
+                    ? `${Number(statistics.likeCount).toLocaleString()} likes`
+                    : "Likes are hidden"
+                }
+              >
+                <ThumbsUpIcon size={20} />
+                {statistics.likeCount
+                  ? formatTotalCount(statistics.likeCount)
+                  : "Like"}
+              </span>
+              <span className="flex items-center h-full px-[1.6rem]">
+                <ThumbsDownIcon size={20} />
+              </span>
+            </div>
+          </div>
+
+          {/* Description box: stats in bold, then the text, tags and the creator */}
+          <div className="bg-yt-surface rounded-xl p-[1.2rem] mt-[1.2rem] text-[1.4rem] leading-[2rem]">
+            <p className="font-medium">
+              {Number(statistics.viewCount).toLocaleString()} views&nbsp;&nbsp;
+              {formatDate(snippet.publishedAt)}&nbsp;&nbsp;{facts.join(" · ")}
+            </p>
+            <p
+              className={`whitespace-pre-line break-words mt-[0.4rem] ${
+                isExpanded ? "" : "line-clamp-3"
+              }`}
+            >
+              {snippet.description}
+            </p>
+            <button
+              type="button"
+              onClick={() => setExpanded(!isExpanded)}
+              className="font-medium mt-[0.4rem]"
+            >
+              {isExpanded ? "Show less" : "...more"}
+            </button>
+            {snippet.tags && (
+              <p className="text-[#3ea6ff] break-words mt-[1.2rem]">
+                {snippet.tags
+                  .map((tag) => `#${tag.replace(/\s+/g, "")}`)
+                  .join(" ")}
+              </p>
+            )}
+            {channel && (
+              <div className="flex items-start gap-[1.6rem] border-t border-yt-hover mt-[1.6rem] pt-[1.6rem]">
+                <img
+                  src={channel.snippet.thumbnails.medium.url}
+                  alt=""
+                  className="w-[5.6rem] h-[5.6rem] shrink-0 rounded-full"
+                />
+                <div className="min-w-0">
+                  <Link
+                    to={`/channel/${channel.id}`}
+                    className="text-[1.6rem] font-bold"
+                  >
+                    {channel.snippet.title}
+                  </Link>
+                  <p className="text-yt-muted">
+                    {[
+                      channel.snippet.customUrl,
+                      !channel.statistics.hiddenSubscriberCount &&
+                        `${formatTotalCount(channel.statistics.subscriberCount)} subscribers`,
+                      `${formatTotalCount(channel.statistics.videoCount)} videos`,
+                      `${formatTotalCount(channel.statistics.viewCount)} views`,
+                    ]
+                      .filter(Boolean)
+                      .join(" • ")}
+                  </p>
+                  <p className="text-yt-muted">
+                    {channel.snippet.country && `${channel.snippet.country} • `}
+                    Joined {formatDate(channel.snippet.publishedAt)}
+                  </p>
+                  <p className="line-clamp-2 mt-[0.4rem]">
+                    {channel.snippet.description}
+                  </p>
+                  <Link
+                    to={`/channel/${channel.id}`}
+                    className="inline-flex items-center h-[3.6rem] px-[1.6rem] mt-[1.2rem] rounded-full border border-yt-hover font-medium hover:bg-yt-hover"
+                  >
+                    Videos
+                  </Link>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <VideoComments
+            videoId={videoId}
+            commentCount={statistics.commentCount}
+          />
+        </main>
+
+        <aside className="xl:w-[40.2rem] shrink-0 flex flex-col gap-[0.8rem]">
+          {moreVideos.length > 0 && (
+            <h2 className="text-[1.6rem] font-medium">
+              More from {snippet.channelTitle}
+            </h2>
           )}
-        </div>
+          {moreVideos.map(
+            ({
+              id,
+              snippet: upload,
+              statistics: uploadStats,
+              contentDetails: uploadDetails,
+            }) => (
+              <CompactVideoCard
+                key={id}
+                videoId={id}
+                thumbnail={upload.thumbnails.medium.url}
+                title={upload.title}
+                channelTitle={upload.channelTitle}
+                viewCount={uploadStats.viewCount}
+                publishedAt={upload.publishedAt}
+                duration={uploadDetails.duration}
+              />
+            )
+          )}
+        </aside>
       </div>
     </div>
   );
+};
+
+const VideoDetailsPage: FC = () => {
+  const { videoId = "" } = useParams();
+
+  // Keyed so scroll position and "...more" reset when another video opens
+  return <Watch key={videoId} videoId={videoId} />;
 };
 
 export default VideoDetailsPage;

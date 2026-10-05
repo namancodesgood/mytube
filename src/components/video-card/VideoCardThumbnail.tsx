@@ -8,8 +8,9 @@ const VideoCardThumbnail: FC<Props> = ({ thumbnail }: Props) => {
   return (
     <img
       src={thumbnail}
-      className="aspect-video rounded-lg h-full w-full"
-      alt="Video Thumbnail"
+      loading="lazy"
+      className="aspect-video w-full rounded-xl object-cover bg-yt-surface"
+      alt=""
     />
   );
 };

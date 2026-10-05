@@ -5,34 +5,10 @@ import { useQuery } from "react-query";
 import VideoCard from "@/components/video-card/VideoCard";
 import BodyShimmer from "@/components/shimmer/BodyShimmer";
 
-import { VideoData } from "@/interfaces/VideoData";
-import { ytFetch } from "@/utils/helper";
+import { fetchUploads } from "@/utils/helper";
 
 type Props = {
   uploadsPlaylistId: string;
-};
-
-type PlaylistItems = {
-  items?: { contentDetails: { videoId: string } }[];
-};
-
-// ponytail: latest 24 uploads only, page with nextPageToken when older ones are needed
-const fetchUploads = async (playlistId: string) => {
-  const uploads = await ytFetch<PlaylistItems>("playlistItems", {
-    part: "contentDetails",
-    playlistId,
-    maxResults: "24",
-  });
-  const ids = uploads.items?.map(({ contentDetails }) => contentDetails.videoId);
-
-  if (!ids?.length) return [];
-
-  // playlistItems has no stats or duration, so fetch the videos themselves (1 call for all)
-  const videos = await ytFetch<VideoData>("videos", {
-    part: "snippet,contentDetails,statistics,player",
-    id: ids.join(","),
-  });
-  return videos.items;
 };
 
 const ChannelVideos: FC<Props> = ({ uploadsPlaylistId }) => {
@@ -45,8 +21,10 @@ const ChannelVideos: FC<Props> = ({ uploadsPlaylistId }) => {
 
   if (!videos?.length) {
     return (
-      <p className="text-2xl">
-        {status === "error" ? "Couldn't load videos." : "No videos yet."}
+      <p className="text-[1.4rem] text-yt-muted">
+        {status === "error"
+          ? "Couldn't load videos."
+          : "This channel has no videos yet."}
       </p>
     );
   }

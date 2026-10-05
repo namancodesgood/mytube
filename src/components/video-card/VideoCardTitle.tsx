@@ -1,19 +1,17 @@
 import { FC } from "react";
 
 type Props = {
-  isSidebarOpen: boolean;
   videoTitle: string;
 };
 
-const VideoCardTitle: FC<Props> = ({ isSidebarOpen, videoTitle }) => {
+const VideoCardTitle: FC<Props> = ({ videoTitle }) => {
   return (
-    <p
-      className={`line-clamp-2 ${
-        isSidebarOpen ? "text-[1.6rem]" : "text-[1.5rem]"
-      }`}
+    <h3
+      className="line-clamp-2 text-[1.6rem] leading-[2.2rem] font-medium"
+      title={videoTitle}
     >
       {videoTitle}
-    </p>
+    </h3>
   );
 };
 

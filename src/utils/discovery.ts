@@ -91,3 +91,31 @@ export const pickSample = (data: unknown, path: string) =>
       (value as Record<string, unknown>)[key]
     );
   }, data);
+
+// Leaf paths in a real response, written the way flattenSchema writes them
+export const livePaths = (value: unknown, path = ""): string[] => {
+  if (Array.isArray(value)) {
+    return value.length
+      ? [...new Set(value.flatMap((item) => livePaths(item, `${path}[]`)))]
+      : [`${path}[]`];
+  }
+  if (value && typeof value === "object") {
+    return Object.entries(value).flatMap(([key, child]) =>
+      livePaths(child, path ? `${path}.${key}` : key)
+    );
+  }
+  return [path];
+};
+
+// Live fields the schema doesn't document; a "*" in a schema path matches any map key
+export const undocumentedPaths = (fields: Field[], data: unknown) => {
+  const documented = fields.map(
+    ({ path }) =>
+      new RegExp(
+        `^${path.replace(/[.[\]]/g, "\\$&").replace(/\\\.\*/g, "\\.[^.]+")}$`
+      )
+  );
+  return [...new Set(livePaths(data))].filter(
+    (path) => !documented.some((pattern) => pattern.test(path))
+  );
+};

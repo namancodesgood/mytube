@@ -10,6 +10,7 @@ import {
   flattenSchema,
   getMethods,
   pickSample,
+  undocumentedPaths,
 } from "@/utils/discovery";
 
 // Google's machine-readable description of every YouTube Data API method and field
@@ -153,11 +154,10 @@ const groupOf = (access: Access) =>
 type CardProps = {
   method: Method;
   fields: Field[];
-  total: number;
-  filtering: boolean;
+  query: string;
 };
 
-const MethodCard: FC<CardProps> = ({ method, fields, total, filtering }) => {
+const MethodCard: FC<CardProps> = ({ method, fields, query }) => {
   const access = ACCESS[method.id] ?? {};
   const [enabled, setEnabled] = useState(!!access.sample && !access.onDemand);
   const { data, error, status } = useQuery<unknown, Error>(
@@ -166,6 +166,17 @@ const MethodCard: FC<CardProps> = ({ method, fields, total, filtering }) => {
       ytFetch<unknown>(method.path.replace("youtube/v3/", ""), access.sample ?? {}),
     { enabled, staleTime: Infinity, retry: false }
   );
+
+  const matches = (text: string) => text.toLowerCase().includes(query);
+  const shown = query
+    ? fields.filter((field) => matches(`${field.path} ${field.description}`))
+    : fields;
+  // Anything the live call returned that Google's description leaves out
+  const undocumented =
+    status === "success" ? undocumentedPaths(fields, data) : [];
+  const undocumentedShown = query ? undocumented.filter(matches) : undocumented;
+
+  if (query && !shown.length && !undocumentedShown.length) return null;
 
   const [badge, badgeColor] = access.blocked
     ? ["Restricted", "bg-red-800"]
@@ -236,16 +247,34 @@ const MethodCard: FC<CardProps> = ({ method, fields, total, filtering }) => {
       )}
       {error && <p className="text-red-400 text-xl mt-3">{error.message}</p>}
 
-      <details open={filtering} className="mt-4">
+      <details open={!!query} className="mt-4">
         <summary className="cursor-pointer text-xl">
-          {filtering ? `${fields.length} of ${total}` : total} data points
+          {query ? `${shown.length} of ${fields.length}` : fields.length} data
+          points
+          {undocumented.length > 0 &&
+            ` + ${undocumented.length} undocumented`}
           {status === "success" && ` · ${sampled} present in this sample`}
         </summary>
         {fields.length === 0 ? (
           <p className="text-xl text-slate-400 mt-2">No JSON fields.</p>
         ) : (
           <ul className="mt-2 text-lg">
-            {fields.map((field) => {
+            {undocumentedShown.map((path) => (
+              <li key={path} className="py-2 border-t border-[#303030]">
+                <div className="flex flex-wrap items-baseline gap-x-4">
+                  <code className="text-sky-300 break-all">{path}</code>
+                  <span className="text-amber-400">not in Google's docs</span>
+                </div>
+                <p className="font-mono truncate text-slate-200">
+                  {JSON.stringify(pickSample(data, path))}
+                </p>
+                <p className="text-slate-400">
+                  Returned by the live call but missing from the API
+                  description.
+                </p>
+              </li>
+            ))}
+            {shown.map((field) => {
               const sample = sampleFor(field);
               return (
                 <li key={field.path} className="py-2 border-t border-[#303030]">
@@ -316,7 +345,8 @@ const YouTubeApiPage: FC = () => {
         our key" also make a live call (Rick Astley's channel and "Never Gonna
         Give You Up") and show the real value next to each field. A field
         "not in this sample" can still show up for other videos, e.g. live
-        stream details only exist on live streams. Default quota: 10,000
+        stream details only exist on live streams. Fields a live call returns
+        that Google doesn't document are listed too. Default quota: 10,000
         units/day, plus a separate 100 calls/day for search.
       </p>
       <input
@@ -327,26 +357,14 @@ const YouTubeApiPage: FC = () => {
         className="w-full max-w-[60rem] h-14 mt-6 px-6 rounded-full text-2xl border border-[#303030] bg-[#121212] focus:border-blue-400 focus:outline-0"
       />
       <div className="grid grid-cols-1 xl:grid-cols-2 items-start gap-4 mt-6">
-        {methods.map(({ method, fields }) => {
-          const shown = query
-            ? fields.filter((field) =>
-                `${field.path} ${field.description}`
-                  .toLowerCase()
-                  .includes(query)
-              )
-            : fields;
-          return (
-            (!query || shown.length > 0) && (
-              <MethodCard
-                key={method.id}
-                method={method}
-                fields={shown}
-                total={fields.length}
-                filtering={!!query}
-              />
-            )
-          );
-        })}
+        {methods.map(({ method, fields }) => (
+          <MethodCard
+            key={method.id}
+            method={method}
+            fields={fields}
+            query={query}
+          />
+        ))}
       </div>
     </div>
   );

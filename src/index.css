@@ -6,17 +6,29 @@
 
 body {
   background: #0f0f0f;
-  color: white;
+  color: #f1f1f1;
   font-family: "Roboto", sans-serif;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: 0 0;
+  }
 }
 
 @layer utilities {
   .hover-bg {
     @apply hover:bg-[#272727];
   }
-  
+
+  /* Skeleton block: YouTube's dark surface with a soft light sweep */
   .shimmer {
-    @apply bg-slate-600 rounded-lg animate-pulse;
+    background: linear-gradient(90deg, #272727 30%, #3a3a3a 50%, #272727 70%);
+    background-size: 300% 100%;
+    animation: shimmer 1.6s ease-in-out infinite;
   }
 
   /* As many >=30rem columns as fit, like YouTube's feed */
@@ -25,7 +37,7 @@ body {
     grid-template-columns: repeat(auto-fill, minmax(min(30rem, 100%), 1fr));
     gap: 4rem 1.6rem;
   }
-  
+
   /* Clears the ‘X’ from Internet Explorer */
   input[type="search"]::-ms-clear,
   input[type="search"]::-ms-reveal {
@@ -40,5 +52,11 @@ body {
   input[type="search"]::-webkit-search-results-button,
   input[type="search"]::-webkit-search-results-decoration {
     display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shimmer {
+    animation: none;
   }
 }

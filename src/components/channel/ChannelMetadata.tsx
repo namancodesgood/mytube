@@ -1,10 +1,8 @@
 import { FC, useState } from "react";
 
-import { formatTotalCount } from "@/utils/helper";
+import { formatTotalCount } from "@/utils/format";
 
-import { ArrowRight, DotIcon } from "lucide-react";
 import AboutChannelModal from "../modals/AboutChannelModal";
-import PrimaryButton from "../buttons/PrimaryButton";
 
 type Props = {
   title: string;
@@ -12,6 +10,7 @@ type Props = {
   description: string;
   customUrl: string;
   publishedAt: string;
+  country?: string;
   videoCount: string;
   viewCount: string;
   subscriberCount: string;
@@ -23,6 +22,7 @@ const ChannelMetadata: FC<Props> = ({
   avatar,
   description,
   customUrl,
+  country,
   videoCount,
   viewCount,
   subscriberCount,
@@ -33,39 +33,34 @@ const ChannelMetadata: FC<Props> = ({
 
   return (
     <>
-      <div className="flex items-center my-6 gap-6 h-60">
-        <div>
-          <img src={avatar} alt={title} className="rounded-full max-w-60" />
-        </div>
-        <div className="flex flex-col items-start justify-evenly h-full">
-          <h2 className="text-5xl font-bold">{title}</h2>
-          <span className="flex items-center text-2xl text-slate-200">
-            <span>{customUrl}</span>
-            {!hiddenSubscriberCount && (
-              <>
-                <DotIcon />
-                <span>
-                  {formatTotalCount(subscriberCount)}&nbsp;subscribers
-                </span>
-              </>
-            )}
-            <DotIcon />
-            <span>{formatTotalCount(videoCount)}&nbsp;videos</span>
-            <DotIcon />
-            <span>{formatTotalCount(viewCount)}&nbsp;views</span>
-          </span>
-          <span className="flex items-center">
-            <p className="line-clamp-1 w-2/3 text-2xl">{description}</p>
-            <PrimaryButton
-              callback={() => {
-                setModalState(true);
-              }}
-              className="rounded-full"
-            >
-              <ArrowRight />
-            </PrimaryButton>
-          </span>
-          <button className="px-6 py-4 bg-white text-black rounded-full text-2xl">
+      <div className="flex items-center gap-[1.6rem] mt-[1.6rem]">
+        <img
+          src={avatar}
+          alt={title}
+          className="w-[16rem] h-[16rem] shrink-0 rounded-full"
+        />
+        <div className="flex flex-col items-start gap-[0.8rem] min-w-0">
+          <h1 className="text-[3.6rem] leading-[5rem] font-bold">{title}</h1>
+          <p className="text-[1.4rem] leading-[2rem] text-yt-muted">
+            <span className="text-yt-text font-medium">{customUrl}</span>
+            {!hiddenSubscriberCount &&
+              ` • ${formatTotalCount(subscriberCount)} subscribers`}
+            {` • ${formatTotalCount(videoCount)} videos`}
+          </p>
+          {/* Like YouTube, the description teaser opens the About dialog */}
+          <button
+            type="button"
+            onClick={() => setModalState(true)}
+            className="flex max-w-[60rem] text-left text-[1.4rem] leading-[2rem] text-yt-muted"
+          >
+            <span className="truncate">{description}</span>
+            <span className="shrink-0 text-yt-text font-medium">...more</span>
+          </button>
+          <button
+            type="button"
+            title="Coming soon"
+            className="h-[3.6rem] px-[1.6rem] mt-[0.4rem] rounded-full bg-yt-text text-yt-bg text-[1.4rem] font-medium"
+          >
             Subscribe
           </button>
         </div>
@@ -73,7 +68,10 @@ const ChannelMetadata: FC<Props> = ({
       {isModalOpen && (
         <AboutChannelModal
           description={description}
+          customUrl={customUrl}
+          country={country}
           videoCount={videoCount}
+          viewCount={viewCount}
           subscriberCount={subscriberCount}
           hiddenSubscriberCount={hiddenSubscriberCount}
           publishedAt={publishedAt}

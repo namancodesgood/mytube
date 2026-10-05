@@ -1,6 +1,6 @@
 import VideoCardShimmer from "./VideoCardShimmer";
 
-const repetitions = Array.from({ length: 15 });
+const repetitions = Array.from({ length: 12 });
 
 const BodyShimmer = () => {
   return (

@@ -25,6 +25,11 @@ export const SIDEBAR_MENU_ITEMS = [
         link: "",
         icon: MonitorPlayIcon,
       },
+    ],
+  },
+  {
+    title: "Explore",
+    items: [
       {
         name: "YouTube Music",
         link: "",

@@ -1,7 +1,17 @@
-// Run: node --experimental-strip-types src/utils/discovery.check.ts
+// Run: node --experimental-strip-types src/utils/utils.check.ts
 import assert from "node:assert/strict";
 
-import { flattenSchema, getMethods, pickSample } from "./discovery.ts";
+import {
+  flattenSchema,
+  getMethods,
+  pickSample,
+  undocumentedPaths,
+} from "./discovery.ts";
+import {
+  formatTotalCount,
+  getFormattedDuration,
+  getFormattedTime,
+} from "./format.ts";
 
 const schemas = {
   ListResponse: {
@@ -46,6 +56,13 @@ assert.equal(pickSample(sample, "items[].snippet.tags[]"), "a");
 assert.equal(pickSample(sample, "items[].localizations.*.title"), "Hi");
 assert.equal(pickSample(sample, "items[].definition"), undefined);
 
+assert.deepEqual(
+  undocumentedPaths(fields, {
+    items: [{ id: "x", localizations: { fr: { title: "Salut" } }, publishTime: "now" }],
+  }),
+  ["items[].publishTime"]
+);
+
 const nested = getMethods({
   a: {
     methods: { list: { id: "a.list", httpMethod: "GET", path: "a" } },
@@ -59,4 +76,18 @@ assert.deepEqual(
   ["a.list", "a.b.get"]
 );
 
-console.log("discovery checks passed");
+assert.equal(formatTotalCount("4550000"), "4.55M");
+assert.equal(formatTotalCount("1823557663"), "1.82B");
+assert.equal(formatTotalCount("999"), "999");
+
+assert.equal(getFormattedDuration("PT3M33S"), "3:33");
+assert.equal(getFormattedDuration("PT1H2M3S"), "1:02:03");
+assert.equal(getFormattedDuration("P1DT1M"), "24:01:00");
+assert.equal(getFormattedDuration("P0D"), "");
+
+const now = Date.parse("2026-10-06T00:00:00Z");
+assert.equal(getFormattedTime("2009-10-25T06:57:33Z", now), "16 years ago");
+assert.equal(getFormattedTime("2026-10-04T00:00:00Z", now), "2 days ago");
+assert.equal(getFormattedTime("2026-10-06T00:00:00Z", now), "0 seconds ago");
+
+console.log("utils checks passed");

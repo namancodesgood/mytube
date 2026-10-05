@@ -7,7 +7,7 @@ type Props = {
 
 const TabContent: FC<Props> = ({ content, selected }) => {
   return (
-    <div className="mt-6">
+    <div className="mt-[2.4rem]">
       {content.map(
         (el, idx) => idx === selected && <span key={idx}>{el}</span>
       )}

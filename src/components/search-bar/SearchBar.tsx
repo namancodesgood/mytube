@@ -46,14 +46,17 @@ const SearchBar = ({ className }: Props) => {
 
   return (
     <div className={`relative ${className}`}>
-      <div className="flex items-center w-[60rem] h-16">
+      <div className="flex items-center w-[min(64rem,45vw)] h-[4rem]">
         <input
           type="search"
-          className="w-full h-full rounded-l-full pl-6 text-2xl border border-[#303030] bg-[#121212] focus:border-blue-400 focus:outline-0"
+          className="w-full h-full rounded-l-full pl-[1.6rem] text-[1.6rem] border border-yt-border bg-[#121212] focus:border-[#1c62b9] focus:outline-0"
           placeholder="Search"
           onChange={debouncedSearch}
         />
-        <button className="bg-[#222222] border border-[#303030] h-full w-28 flex justify-center items-center rounded-r-full">
+        <button
+          aria-label="Search"
+          className="bg-[#222222] border border-l-0 border-yt-border h-full w-[6.4rem] shrink-0 flex justify-center items-center rounded-r-full"
+        >
           <Search size={20} />
         </button>
       </div>

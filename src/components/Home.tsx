@@ -47,7 +47,7 @@ const Home: FC = () => {
 
   if (status === "loading") {
     return (
-      <div className="w-full px-6">
+      <div className="w-full px-[2.4rem] pt-[2.4rem]">
         <BodyShimmer />
       </div>
     );
@@ -55,7 +55,7 @@ const Home: FC = () => {
 
   if (status === "error") {
     return (
-      <p>
+      <p className="p-[2.4rem] text-[1.4rem]">
         {typeof error === "string"
           ? error
           : "An error occurred. Please try again later."}
@@ -66,7 +66,7 @@ const Home: FC = () => {
   const videos = data?.pages.flatMap((page) => page.items) || [];
 
   return (
-    <div className="w-full overflow-y-auto px-6 pb-10">
+    <div className="w-full overflow-y-auto px-[2.4rem] pt-[2.4rem] pb-10">
       <div className="video-grid">
         {videos.map(({ id, snippet, statistics, contentDetails, player }, idx) => (
           <VideoCard

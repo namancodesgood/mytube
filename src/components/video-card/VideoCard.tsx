@@ -2,8 +2,6 @@ import { useState } from "react";
 
 import { useQuery } from "react-query";
 
-import { useAppSelector } from "@/store/store";
-
 import { fetchChannelDetails } from "@/utils/helper";
 
 import { Link } from "react-router-dom";
@@ -42,7 +40,6 @@ const VideoCard = ({
   embed,
   innerRef,
 }: Props) => {
-  const { isSidebarOpen } = useAppSelector((store) => store.globalSlice);
   const [isHover, setIsHover] = useState(false);
 
   const { data, status } = useQuery(
@@ -62,10 +59,11 @@ const VideoCard = ({
   const srcMatch = embed.match(/src=["'](.*?)["']/);
   const src = srcMatch ? srcMatch[1] : "";
 
-  const channelThumbnail = data?.items?.[0]?.snippet.thumbnails.medium.url ?? "";
+  const channelThumbnail =
+    data?.items?.[0]?.snippet.thumbnails.medium.url ?? "";
 
   return (
-    <div className="flex flex-col gap-3 cursor-pointer" ref={innerRef}>
+    <div className="flex flex-col gap-[1.2rem]" ref={innerRef}>
       <div
         className="relative"
         onMouseOver={() => setIsHover(true)}
@@ -74,10 +72,7 @@ const VideoCard = ({
         {!isHover ? (
           <>
             <VideoCardThumbnail thumbnail={thumbnail} />
-            <VideoCardDuration
-              isSidebarOpen={isSidebarOpen}
-              duration={duration}
-            />
+            <VideoCardDuration duration={duration} />
           </>
         ) : (
           <VideoCardPreview src={src} />
@@ -89,28 +84,21 @@ const VideoCard = ({
           className="absolute inset-0"
         />
       </div>
-      <div className="flex gap-x-4 items-start mt-2">
-        <Link to={`/channel/${channelId}`}>
+      <div className="flex gap-[1.2rem] items-start">
+        <Link to={`/channel/${channelId}`} className="shrink-0">
           <VideoCardChannelImage src={channelThumbnail} alt={channelTitle} />
         </Link>
 
-        <div className="flex flex-col gap-y-1 mt-1">
+        <div className="flex flex-col min-w-0">
           <Link to={`/watch/${videoId}`}>
-            <VideoCardTitle
-              isSidebarOpen={isSidebarOpen}
-              videoTitle={videoTitle}
-            />
+            <VideoCardTitle videoTitle={videoTitle} />
           </Link>
-
-          <div className="mt-1">
-            <VideoCardMetdataBar
-              isSidebarOpen={isSidebarOpen}
-              channelId={channelId}
-              channelTitle={channelTitle}
-              viewCount={viewCount}
-              publishedAt={publishedAt}
-            />
-          </div>
+          <VideoCardMetdataBar
+            channelId={channelId}
+            channelTitle={channelTitle}
+            viewCount={viewCount}
+            publishedAt={publishedAt}
+          />
         </div>
       </div>
     </div>

@@ -10,7 +10,7 @@ const ChannelBanner: FC<Props> = ({ src, alt }) => {
     <img
       src={src}
       alt={alt}
-      className="h-80 w-11/12 object-cover rounded-3xl"
+      className="w-full aspect-[6.2/1] object-cover rounded-xl bg-yt-surface"
     />
   );
 };

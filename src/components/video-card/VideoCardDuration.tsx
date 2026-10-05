@@ -1,20 +1,19 @@
 import { FC } from "react";
 
-import { getFormattedDuration } from "@/utils/helper";
+import { getFormattedDuration } from "@/utils/format";
 
 type Props = {
-  isSidebarOpen: boolean;
   duration: string;
 };
 
-const VideoCardDuration: FC<Props> = ({ isSidebarOpen, duration }: Props) => {
+const VideoCardDuration: FC<Props> = ({ duration }: Props) => {
+  const length = getFormattedDuration(duration);
+
+  if (!length) return null;
+
   return (
-    <span
-      className={`absolute right-0 bottom-1 bg-black bg-opacity-80 px-3 py-1 rounded-lg ${
-        isSidebarOpen ? "text-xl" : "text-lg"
-      }`}
-    >
-      {getFormattedDuration(duration)}
+    <span className="absolute right-[0.8rem] bottom-[0.8rem] bg-black/80 px-[0.4rem] py-[0.1rem] rounded-[0.4rem] text-[1.2rem] font-medium">
+      {length}
     </span>
   );
 };

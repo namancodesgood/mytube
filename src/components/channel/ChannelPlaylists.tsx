@@ -2,6 +2,8 @@ import { FC } from "react";
 
 import { useQuery } from "react-query";
 
+import { ListVideoIcon } from "lucide-react";
+
 import BodyShimmer from "@/components/shimmer/BodyShimmer";
 
 import { Thumbnail } from "@/interfaces/Thumbnail";
@@ -32,8 +34,10 @@ const ChannelPlaylists: FC<Props> = ({ channelId }) => {
 
   if (!data?.items?.length) {
     return (
-      <p className="text-2xl">
-        {status === "error" ? "Couldn't load playlists." : "No public playlists."}
+      <p className="text-[1.4rem] text-yt-muted">
+        {status === "error"
+          ? "Couldn't load playlists."
+          : "This channel has no public playlists."}
       </p>
     );
   }
@@ -47,18 +51,28 @@ const ChannelPlaylists: FC<Props> = ({ channelId }) => {
           href={`https://www.youtube.com/playlist?list=${id}`}
           target="_blank"
           rel="noreferrer"
+          className="group"
         >
+          {/* YouTube's stacked-card hint above a playlist thumbnail */}
+          <div className="mx-[1.2rem] h-[0.4rem] rounded-t-lg bg-yt-hover" />
           <div className="relative">
             <img
               src={snippet.thumbnails.medium?.url}
               alt=""
-              className="aspect-video w-full rounded-lg object-cover bg-[#272727]"
+              loading="lazy"
+              className="aspect-video w-full rounded-xl object-cover bg-yt-surface"
             />
-            <span className="absolute right-1 bottom-1 bg-black bg-opacity-80 px-3 py-1 rounded-lg text-lg">
+            <span className="absolute right-[0.8rem] bottom-[0.8rem] flex items-center gap-[0.4rem] bg-black/80 px-[0.6rem] py-[0.2rem] rounded-[0.4rem] text-[1.2rem] font-medium">
+              <ListVideoIcon size={14} />
               {contentDetails.itemCount} videos
             </span>
           </div>
-          <p className="text-[1.5rem] line-clamp-2 mt-2">{snippet.title}</p>
+          <h3 className="text-[1.4rem] leading-[2rem] font-medium line-clamp-2 mt-[1.2rem]">
+            {snippet.title}
+          </h3>
+          <p className="text-[1.4rem] text-yt-muted group-hover:text-yt-text">
+            View full playlist
+          </p>
         </a>
       ))}
     </div>

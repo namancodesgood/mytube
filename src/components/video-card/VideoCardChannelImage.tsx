@@ -6,7 +6,14 @@ type Props = {
 };
 
 const VideoCardChannelImage: FC<Props> = ({ src, alt }) => {
-  return <img className="rounded-full max-w-16 mt-1" src={src} alt={alt} />;
+  return (
+    <img
+      className="w-[3.6rem] h-[3.6rem] rounded-full object-cover bg-yt-surface"
+      src={src}
+      alt={alt}
+      loading="lazy"
+    />
+  );
 };
 
 export default VideoCardChannelImage;
