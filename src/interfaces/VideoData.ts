@@ -13,3 +13,5 @@ export interface VideoData {
   }[];
   nextPageToken: "string";
 }
+
+export type VideoItem = VideoData["items"][number];

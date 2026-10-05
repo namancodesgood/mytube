@@ -1,6 +1,10 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ["./index.html", "./src/**/*.{js,jsx,ts,tsx}"],
+  // hover: styles only on devices that can hover, so they don't stick after a tap
+  future: {
+    hoverOnlyWhenSupported: true,
+  },
   theme: {
     extend: {
       // YouTube's dark theme

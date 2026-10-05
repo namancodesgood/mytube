@@ -1,32 +1,40 @@
 import { useState } from "react";
 
-import SearchSuggestion from "@/components/search-bar/SearchSuggestion";
-import { YT_API_URI } from "@/utils/constants";
-
-import { Search } from "lucide-react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery } from "react-query";
 
-import { Item } from "@/interfaces/Item";
+import SearchSuggestion from "@/components/search-bar/SearchSuggestion";
+
+import { Search } from "lucide-react";
+
 import { YoutubeSearchListResponse } from "@/interfaces/YoutubeSearchListResponse";
 
 import { useDebounce } from "@/custom-hooks/useDebounce";
+import { ytFetch } from "@/utils/helper";
+import { decodeHtml } from "@/utils/format";
 
-const fetchSearchSuggestions = async (searchQuery: string) => {
-  const endpoint = `${YT_API_URI}/search?part=snippet&maxResults=5&q=${searchQuery}&key=${
-    import.meta.env.VITE_YT_API_KEY
-  }`;
-  const response = await fetch(endpoint);
-  return await response.json();
-};
+// ponytail: suggestions are video titles from search.list, which shares the 100 searches/day quota
+const fetchSearchSuggestions = (searchQuery: string) =>
+  ytFetch<YoutubeSearchListResponse>("search", {
+    part: "snippet",
+    maxResults: "5",
+    q: searchQuery,
+  });
 
 type Props = {
   className?: string;
+  autoFocus?: boolean;
+  onSearch?: () => void;
 };
 
-const SearchBar = ({ className }: Props) => {
+const SearchBar = ({ className = "", autoFocus, onSearch }: Props) => {
+  const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const currentQuery = params.get("search_query") ?? "";
   const [searchQuery, setSearchQuery] = useState("");
+  const [isFocused, setFocused] = useState(false);
 
-  const { data, error } = useQuery<YoutubeSearchListResponse>(
+  const { data, error } = useQuery(
     ["searchSuggestions", searchQuery],
     () => fetchSearchSuggestions(searchQuery),
     {
@@ -41,29 +49,54 @@ const SearchBar = ({ className }: Props) => {
 
   const debouncedSearch = useDebounce(handleSearchInput, 500);
 
-  const suggestions: string[] =
-    data?.items?.map((item: Item) => item?.snippet?.title ?? "") || [];
+  const search = (query: string) => {
+    if (!query.trim()) return;
+    setFocused(false);
+    navigate(`/results?search_query=${encodeURIComponent(query.trim())}`);
+    onSearch?.();
+  };
+
+  const suggestions =
+    data?.items?.map((item) => decodeHtml(item.snippet?.title ?? "")) ?? [];
 
   return (
-    <div className={`relative ${className}`}>
-      <div className="flex items-center w-[min(64rem,45vw)] h-[4rem]">
+    <form
+      role="search"
+      className={`relative ${className}`}
+      onSubmit={(event) => {
+        event.preventDefault();
+        search(String(new FormData(event.currentTarget).get("q") ?? ""));
+      }}
+    >
+      <div className="flex items-center w-full h-[4rem]">
         <input
+          // Remounts with the query in the URL, so the results page shows what was searched
+          key={currentQuery}
+          defaultValue={currentQuery}
+          name="q"
           type="search"
-          className="w-full h-full rounded-l-full pl-[1.6rem] text-[1.6rem] border border-yt-border bg-[#121212] focus:border-[#1c62b9] focus:outline-0"
+          enterKeyHint="search"
+          autoComplete="off"
+          autoFocus={autoFocus}
+          aria-label="Search"
+          className="w-full min-w-0 h-full rounded-l-full pl-[1.6rem] text-[1.6rem] border border-yt-border bg-[#121212] focus:border-[#1c62b9] focus:outline-0"
           placeholder="Search"
           onChange={debouncedSearch}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
         />
         <button
+          type="submit"
           aria-label="Search"
-          className="bg-[#222222] border border-l-0 border-yt-border h-full w-[6.4rem] shrink-0 flex justify-center items-center rounded-r-full"
+          className="bg-[#222222] border border-l-0 border-yt-border h-full w-[6.4rem] shrink-0 flex justify-center items-center rounded-r-full hover:bg-yt-surface active:bg-yt-surface"
         >
           <Search size={20} />
         </button>
       </div>
-      {!error && suggestions.length > 0 && (
-        <SearchSuggestion suggestions={suggestions} />
+      {isFocused && !error && suggestions.length > 0 && (
+        <SearchSuggestion suggestions={suggestions} onSelect={search} />
       )}
-    </div>
+    </form>
   );
 };
 

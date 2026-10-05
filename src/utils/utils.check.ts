@@ -8,7 +8,9 @@ import {
   undocumentedPaths,
 } from "./discovery.ts";
 import {
+  decodeHtml,
   formatTotalCount,
+  getDurationSeconds,
   getFormattedDuration,
   getFormattedTime,
 } from "./format.ts";
@@ -84,6 +86,13 @@ assert.equal(getFormattedDuration("PT3M33S"), "3:33");
 assert.equal(getFormattedDuration("PT1H2M3S"), "1:02:03");
 assert.equal(getFormattedDuration("P1DT1M"), "24:01:00");
 assert.equal(getFormattedDuration("P0D"), "");
+assert.equal(getDurationSeconds("PT2M1S"), 121);
+assert.equal(getDurationSeconds("garbage"), 0);
+
+assert.equal(
+  decodeHtml("Don&#39;t &amp; &quot;Stop&quot; &#x27;now&#x27; &nbsp;"),
+  `Don't & "Stop" 'now' &nbsp;`
+);
 
 const now = Date.parse("2026-10-06T00:00:00Z");
 assert.equal(getFormattedTime("2009-10-25T06:57:33Z", now), "16 years ago");

@@ -1,4 +1,4 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 interface InitialState {
   isSidebarOpen: boolean;
@@ -7,7 +7,8 @@ interface InitialState {
 }
 
 const initialState: InitialState = {
-  isSidebarOpen: true,
+  // Wide screens start with the full guide; narrower ones open it as a drawer on demand
+  isSidebarOpen: window.matchMedia("(min-width: 1280px)").matches,
   isModalOpen: true,
   currentChannelTab: 0,
 };
@@ -19,6 +20,9 @@ const globalSlice = createSlice({
     toggleSidebarState: (state) => {
       state.isSidebarOpen = !state.isSidebarOpen;
     },
+    setSidebarState: (state, action: PayloadAction<boolean>) => {
+      state.isSidebarOpen = action.payload;
+    },
     toggleModalState: (state) => {
       state.isModalOpen = !state.isModalOpen;
     },
@@ -28,7 +32,11 @@ const globalSlice = createSlice({
   },
 });
 
-export const { toggleSidebarState, toggleModalState, setCurrentChannelTab } =
-  globalSlice.actions;
+export const {
+  toggleSidebarState,
+  setSidebarState,
+  toggleModalState,
+  setCurrentChannelTab,
+} = globalSlice.actions;
 
 export default globalSlice.reducer;

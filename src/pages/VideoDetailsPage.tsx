@@ -6,10 +6,16 @@ import { useQuery } from "react-query";
 import { ThumbsDownIcon, ThumbsUpIcon } from "lucide-react";
 
 import CompactVideoCard from "@/components/video-card/CompactVideoCard";
+import SubscribeButton from "@/components/buttons/SubscribeButton";
 import VideoComments from "@/components/watch/VideoComments";
 
 import { VideoData } from "@/interfaces/VideoData";
-import { fetchChannelDetails, fetchUploads, ytFetch } from "@/utils/helper";
+import { toSubscribedChannel } from "@/store/reducers/subscriptionsSlice";
+import {
+  fetchChannelDetails,
+  fetchPlaylistVideos,
+  ytFetch,
+} from "@/utils/helper";
 import { formatTotalCount, getFormattedDuration } from "@/utils/format";
 
 const fetchVideo = async (videoId: string) => {
@@ -28,7 +34,7 @@ const formatDate = (timestamp: string) =>
   });
 
 const WatchShimmer = () => (
-  <div className="w-full px-[2.4rem] pt-[2.4rem]">
+  <div className="w-full px-[1.2rem] sm:px-[2.4rem] pt-[1.2rem] sm:pt-[2.4rem]">
     <div className="max-w-[128rem]">
       <div className="aspect-video w-full rounded-xl shimmer" />
       <div className="h-[2.4rem] w-[60%] rounded shimmer mt-[1.6rem]" />
@@ -57,7 +63,7 @@ const Watch: FC<{ videoId: string }> = ({ videoId }) => {
   const uploadsId = channel?.contentDetails.relatedPlaylists.uploads ?? "";
   const { data: uploads } = useQuery(
     ["channelUploads", uploadsId],
-    () => fetchUploads(uploadsId),
+    () => fetchPlaylistVideos(uploadsId),
     { enabled: !!uploadsId }
   );
 
@@ -77,7 +83,7 @@ const Watch: FC<{ videoId: string }> = ({ videoId }) => {
 
   return (
     <div className="w-full overflow-y-auto">
-      <div className="flex flex-col xl:flex-row gap-[2.4rem] max-w-[176rem] mx-auto px-[2.4rem] pt-[2.4rem] pb-10">
+      <div className="flex flex-col xl:flex-row gap-[2.4rem] max-w-[176rem] mx-auto px-[1.2rem] sm:px-[2.4rem] pt-[1.2rem] sm:pt-[2.4rem] pb-10">
         <main className="flex-1 min-w-0">
           <div className="aspect-video w-full overflow-hidden rounded-xl bg-black">
             <iframe
@@ -119,13 +125,12 @@ const Watch: FC<{ videoId: string }> = ({ videoId }) => {
                   </p>
                 )}
               </div>
-              <button
-                type="button"
-                title="Coming soon"
-                className="ml-[1.2rem] h-[3.6rem] px-[1.6rem] rounded-full bg-yt-text text-yt-bg text-[1.4rem] font-medium"
-              >
-                Subscribe
-              </button>
+              {channel && (
+                <SubscribeButton
+                  channel={toSubscribedChannel(channel)}
+                  className="ml-[1.2rem]"
+                />
+              )}
             </div>
             <div className="flex items-center h-[3.6rem] rounded-full bg-yt-surface text-[1.4rem] font-medium">
               <span

@@ -1,14 +1,14 @@
+import { useRef } from "react";
+
 export const useDebounce = (
   fn: (event: React.ChangeEvent<HTMLInputElement>) => void,
   delay: number = 500
 ) => {
-  let timeout: NodeJS.Timeout | null;
+  // A ref, so a re-render mid-typing can't orphan a pending call (each one costs a search)
+  const timeout = useRef<ReturnType<typeof setTimeout>>();
 
   return function (event: React.ChangeEvent<HTMLInputElement>) {
-    if (timeout) {
-      clearTimeout(timeout);
-    }
-
-    timeout = setTimeout(() => fn(event), delay);
+    clearTimeout(timeout.current);
+    timeout.current = setTimeout(() => fn(event), delay);
   };
 };

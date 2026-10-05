@@ -64,10 +64,13 @@ const VideoCard = ({
 
   return (
     <div className="flex flex-col gap-[1.2rem]" ref={innerRef}>
+      {/* Preview on mouse hover only: on touch it would swallow the first tap */}
       <div
         className="relative"
-        onMouseOver={() => setIsHover(true)}
-        onMouseOut={() => setIsHover(false)}
+        onPointerEnter={(event) =>
+          event.pointerType === "mouse" && setIsHover(true)
+        }
+        onPointerLeave={() => setIsHover(false)}
       >
         {!isHover ? (
           <>

@@ -48,7 +48,7 @@ const ACCESS: Record<string, Access> = {
       monetizationDetails: OWNER_ONLY,
       ageGating: OWNER_ONLY,
     },
-    usedIn: "Home feed, watch page, channel videos",
+    usedIn: "Home, Music, watch page, channel videos, search, Shorts, playlists, subscriptions",
   },
   "youtube.videos.batchGetStats": {
     sample: { part: "snippet,contentDetails,statistics", id: VIDEO_ID },
@@ -63,7 +63,7 @@ const ACCESS: Record<string, Access> = {
       auditDetails: OWNER_ONLY,
       conversionPings: "rejected (400)",
     },
-    usedIn: "Video cards, watch page, channel page",
+    usedIn: "Video cards, watch page, channel page, search results",
   },
   "youtube.playlistItems.list": {
     sample: {
@@ -71,7 +71,7 @@ const ACCESS: Record<string, Access> = {
       playlistId: `UU${CHANNEL_ID.slice(2)}`,
       maxResults: "5",
     },
-    usedIn: "Channel videos tab",
+    usedIn: "Channel videos, playlist page, subscriptions feed, notifications",
   },
   "youtube.playlists.list": {
     sample: {
@@ -79,13 +79,14 @@ const ACCESS: Record<string, Access> = {
       channelId: CHANNEL_ID,
       maxResults: "5",
     },
-    usedIn: "Channel playlists tab",
+    usedIn: "Channel playlists, playlist page, search results",
   },
   "youtube.playlistImages.list": {
     sample: { part: "snippet", parent: "PLlaN88a7y2_qHDbY9eQbuNTAuEJUSEeuu" },
   },
   "youtube.commentThreads.list": {
     sample: { part: "snippet,replies", videoId: VIDEO_ID, maxResults: "5" },
+    usedIn: "Watch page comments",
   },
   "youtube.comments.list": {
     sample: {
@@ -93,6 +94,7 @@ const ACCESS: Record<string, Access> = {
       parentId: "Ugzge340dBgB75hWBm54AaABAg",
       maxResults: "5",
     },
+    usedIn: "Comment replies",
   },
   "youtube.activities.list": {
     sample: {
@@ -116,7 +118,7 @@ const ACCESS: Record<string, Access> = {
     sample: { part: "snippet", q: "lofi", maxResults: "5" },
     onDemand: true,
     cost: "1 of the 100 searches/day",
-    usedIn: "Search bar suggestions",
+    usedIn: "Search suggestions, search results, Shorts",
   },
   "youtube.captions.list": {
     sample: { part: "snippet", videoId: VIDEO_ID },
@@ -354,7 +356,7 @@ const YouTubeApiPage: FC = () => {
         value={filter}
         onChange={(event) => setFilter(event.target.value)}
         placeholder="Filter data points, e.g. subscriberCount"
-        className="w-full max-w-[60rem] h-14 mt-6 px-6 rounded-full text-2xl border border-[#303030] bg-[#121212] focus:border-blue-400 focus:outline-0"
+        className="w-full max-w-[60rem] h-14 mt-6 px-6 rounded-full text-[1.6rem] border border-[#303030] bg-[#121212] focus:border-blue-400 focus:outline-0"
       />
       <div className="grid grid-cols-1 xl:grid-cols-2 items-start gap-4 mt-6">
         {methods.map(({ method, fields }) => (

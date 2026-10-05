@@ -1,38 +1,39 @@
-import { FC, useEffect } from "react";
-
-import { YT_API_URI } from "@/utils/constants";
+import { FC, useEffect, useRef, useState } from "react";
 
 import { useInfiniteQuery } from "react-query";
 import { useInView } from "react-intersection-observer";
 
-import VideoCard from "@/components/video-card/VideoCard";
+import VideoGrid from "@/components/video-card/VideoGrid";
+import BodyShimmer from "@/components/shimmer/BodyShimmer";
 
 import { VideoData } from "@/interfaces/VideoData";
-import BodyShimmer from "./shimmer/BodyShimmer";
+import { HOME_CATEGORIES } from "@/utils/constants";
+import { ytFetch } from "@/utils/helper";
 
-const fetchPopularVideos = async (nextPageToken = ""): Promise<VideoData> => {
-  const endpoint = `${YT_API_URI}/videos?part=snippet%2CcontentDetails%2Cstatistics%2C%20player&maxResults=25&chart=mostPopular&regionCode=IN&key=${
-    import.meta.env.VITE_YT_API_KEY
-  }&pageToken=${nextPageToken}`;
+const fetchPopularVideos = (pageToken: string, categoryId: string) =>
+  ytFetch<VideoData>("videos", {
+    part: "snippet,contentDetails,statistics,player",
+    chart: "mostPopular",
+    regionCode: "IN",
+    maxResults: "24",
+    pageToken,
+    ...(categoryId ? { videoCategoryId: categoryId } : {}),
+  });
 
-  const response = await fetch(endpoint);
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch popular videos");
-  }
-
-  const data = await response.json();
-
-  const { nextPageToken: newPageToken, ...restData } = data;
-
-  return { ...restData, nextPageToken: newPageToken };
+type Props = {
+  categoryId?: string; // a fixed category (the Music page) replaces the chips
+  title?: string;
 };
 
-const Home: FC = () => {
-  const { data, status, error, hasNextPage, fetchNextPage } =
+const Home: FC<Props> = ({ categoryId: fixedCategory, title }) => {
+  const [selectedChip, setSelectedChip] = useState("");
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const categoryId = fixedCategory ?? selectedChip;
+
+  const { data, status, hasNextPage, fetchNextPage } =
     useInfiniteQuery<VideoData>(
-      ["popularVideos"],
-      ({ pageParam = "" }) => fetchPopularVideos(pageParam),
+      ["popularVideos", categoryId],
+      ({ pageParam = "" }) => fetchPopularVideos(pageParam, categoryId),
       {
         getNextPageParam: (lastPage) => lastPage.nextPageToken || undefined,
       }
@@ -45,46 +46,58 @@ const Home: FC = () => {
     }
   }, [inView, hasNextPage, fetchNextPage]);
 
-  if (status === "loading") {
-    return (
-      <div className="w-full px-[2.4rem] pt-[2.4rem]">
-        <BodyShimmer />
-      </div>
-    );
-  }
+  const selectChip = (id: string) => {
+    setSelectedChip(id);
+    scrollRef.current?.scrollTo({ top: 0 });
+  };
 
-  if (status === "error") {
-    return (
-      <p className="p-[2.4rem] text-[1.4rem]">
-        {typeof error === "string"
-          ? error
-          : "An error occurred. Please try again later."}
-      </p>
-    );
-  }
-
-  const videos = data?.pages.flatMap((page) => page.items) || [];
+  // Pages of a live chart can overlap, so drop repeats
+  const videos = [
+    ...new Map(
+      (data?.pages.flatMap((page) => page.items) ?? []).map((video) => [
+        video.id,
+        video,
+      ])
+    ).values(),
+  ];
 
   return (
-    <div className="w-full overflow-y-auto px-[2.4rem] pt-[2.4rem] pb-10">
-      <div className="video-grid">
-        {videos.map(({ id, snippet, statistics, contentDetails, player }, idx) => (
-          <VideoCard
-            key={id}
-            videoId={id}
-            thumbnail={
-              snippet.thumbnails?.medium?.url || snippet.thumbnails?.high?.url
-            }
-            channelTitle={snippet.channelTitle}
-            videoTitle={snippet.title}
-            viewCount={statistics?.viewCount}
-            publishedAt={snippet.publishedAt}
-            channelId={snippet.channelId}
-            duration={contentDetails.duration}
-            embed={player.embedHtml}
-            innerRef={idx === videos.length - 10 ? ref : undefined}
-          />
-        ))}
+    <div ref={scrollRef} className="w-full overflow-y-auto pb-10">
+      {fixedCategory === undefined ? (
+        <div className="sticky top-0 z-10 flex gap-[1.2rem] overflow-x-auto no-scrollbar bg-yt-bg px-[1.6rem] sm:px-[2.4rem] py-[1.2rem]">
+          {HOME_CATEGORIES.map(({ id, title: chipTitle }) => (
+            <button
+              key={chipTitle}
+              type="button"
+              aria-pressed={id === selectedChip}
+              onClick={() => selectChip(id)}
+              className={`shrink-0 h-[3.2rem] px-[1.2rem] rounded-[0.8rem] text-[1.4rem] font-medium ${
+                id === selectedChip
+                  ? "bg-yt-text text-yt-bg"
+                  : "bg-yt-surface hover:bg-yt-hover active:bg-yt-hover"
+              }`}
+            >
+              {chipTitle}
+            </button>
+          ))}
+        </div>
+      ) : (
+        <h1 className="text-[2rem] font-bold px-[1.6rem] sm:px-[2.4rem] pt-[2.4rem] pb-[1.2rem]">
+          {title}
+        </h1>
+      )}
+      <div className="px-[1.6rem] sm:px-[2.4rem] pt-[1.2rem]">
+        {status === "loading" ? (
+          <BodyShimmer />
+        ) : videos.length ? (
+          <VideoGrid videos={videos} sentinelRef={ref} />
+        ) : (
+          <p className="text-[1.4rem] text-yt-muted">
+            {status === "error"
+              ? "Couldn't load videos. Please try again later."
+              : "Nothing is trending here right now."}
+          </p>
+        )}
       </div>
     </div>
   );

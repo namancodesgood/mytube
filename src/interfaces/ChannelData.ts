@@ -29,3 +29,5 @@ export interface ChannelData {
     };
   }[];
 }
+
+export type ChannelItem = NonNullable<ChannelData["items"]>[number];

@@ -1,0 +1,14 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "overused-font",
+        "value": "roboto",
+        "createdAt": "2026-10-05T18:59:03.541Z",
+        "reason": "Intentional: same Roboto font, Google Fonts import on line 1 of src/index.css; YouTube's UI font, user asked for a YouTube look"
+      }
+    ]
+  }
+}

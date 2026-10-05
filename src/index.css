@@ -4,10 +4,36 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  background: #0f0f0f;
-  color: #f1f1f1;
-  font-family: "Roboto", sans-serif;
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+    overscroll-behavior: none;
+  }
+
+  body {
+    background: #0f0f0f;
+    color: #f1f1f1;
+    font-family: "Roboto", sans-serif;
+  }
+
+  /* iOS zooms into any input under 16px */
+  input,
+  textarea,
+  select {
+    font-size: 1.6rem;
+  }
+
+  /* Taps fire without the double-tap-zoom wait; button labels don't get selected on long-press */
+  a,
+  button {
+    touch-action: manipulation;
+  }
+
+  button {
+    -webkit-user-select: none;
+    user-select: none;
+  }
 }
 
 @keyframes shimmer {
@@ -21,7 +47,7 @@ body {
 
 @layer utilities {
   .hover-bg {
-    @apply hover:bg-[#272727];
+    @apply hover:bg-[#272727] active:bg-[#3f3f3f];
   }
 
   /* Skeleton block: YouTube's dark surface with a soft light sweep */
@@ -36,6 +62,14 @@ body {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(min(30rem, 100%), 1fr));
     gap: 4rem 1.6rem;
+  }
+
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
   }
 
   /* Clears the ‘X’ from Internet Explorer */

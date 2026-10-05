@@ -4,9 +4,17 @@ import {
   HomeIcon,
   MonitorPlayIcon,
   MusicIcon,
+  LucideIcon,
 } from "lucide-react";
 
-export const SIDEBAR_MENU_ITEMS = [
+type MenuItem = {
+  name: string;
+  shortName?: string; // label in the phone tab bar
+  link: string;
+  icon: LucideIcon;
+};
+
+export const SIDEBAR_MENU_ITEMS: { title: string; items: MenuItem[] }[] = [
   {
     title: "",
     items: [
@@ -17,12 +25,12 @@ export const SIDEBAR_MENU_ITEMS = [
       },
       {
         name: "Shorts",
-        link: "",
+        link: "/shorts",
         icon: ClapperboardIcon,
       },
       {
         name: "Subscriptions",
-        link: "",
+        link: "/feed/subscriptions",
         icon: MonitorPlayIcon,
       },
     ],
@@ -32,11 +40,13 @@ export const SIDEBAR_MENU_ITEMS = [
     items: [
       {
         name: "YouTube Music",
-        link: "",
+        shortName: "Music",
+        link: "/music",
         icon: MusicIcon,
       },
       {
         name: "YouTube API",
+        shortName: "API",
         link: "/youtube-api",
         icon: DatabaseIcon,
       },

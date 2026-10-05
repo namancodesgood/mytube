@@ -29,25 +29,55 @@ export const fetchChannelDetails = (channelId: string) =>
     id: channelId,
   });
 
+// videos.list takes up to 50 ids per call; keeps the given order and skips deleted/private videos
+export const fetchVideosByIds = async (ids: string[]) => {
+  const chunks = Array.from({ length: Math.ceil(ids.length / 50) }, (_, idx) =>
+    ids.slice(idx * 50, idx * 50 + 50)
+  );
+  const pages = await Promise.all(
+    chunks.map((chunk) =>
+      ytFetch<VideoData>("videos", {
+        part: "snippet,contentDetails,statistics,player",
+        id: chunk.join(","),
+      })
+    )
+  );
+  const byId = new Map(
+    pages.flatMap((page) => page.items ?? []).map((video) => [video.id, video])
+  );
+  return ids.flatMap((id) => byId.get(id) ?? []);
+};
+
 type PlaylistItems = {
   items?: { contentDetails: { videoId: string } }[];
 };
 
-// ponytail: latest 24 uploads only, page with nextPageToken when older ones are needed
-export const fetchUploads = async (playlistId: string) => {
-  const uploads = await ytFetch<PlaylistItems>("playlistItems", {
+const fetchPlaylistVideoIds = async (playlistId: string, maxResults: number) => {
+  const playlist = await ytFetch<PlaylistItems>("playlistItems", {
     part: "contentDetails",
     playlistId,
-    maxResults: "24",
+    maxResults: String(maxResults),
   });
-  const ids = uploads.items?.map(({ contentDetails }) => contentDetails.videoId);
+  return playlist.items?.map(({ contentDetails }) => contentDetails.videoId) ?? [];
+};
 
-  if (!ids?.length) return [];
+// ponytail: first page only (max 50), page with nextPageToken when longer playlists matter
+export const fetchPlaylistVideos = async (playlistId: string, maxResults = 24) =>
+  fetchVideosByIds(await fetchPlaylistVideoIds(playlistId, maxResults));
 
-  // playlistItems has no stats or duration, so fetch the videos themselves (1 call for all)
-  const videos = await ytFetch<VideoData>("videos", {
-    part: "snippet,contentDetails,statistics,player",
-    id: ids.join(","),
-  });
-  return videos.items;
+// Newest uploads across channels, for the subscriptions feed and the bell
+export const fetchLatestUploads = async (
+  uploadPlaylists: string[],
+  perChannel = 6
+) => {
+  const lists = await Promise.all(
+    uploadPlaylists.map((playlistId) =>
+      // one gone or empty channel shouldn't blank the whole feed
+      fetchPlaylistVideoIds(playlistId, perChannel).catch(() => [])
+    )
+  );
+  const videos = await fetchVideosByIds(lists.flat());
+  return videos.sort(
+    (a, b) => Date.parse(b.snippet.publishedAt) - Date.parse(a.snippet.publishedAt)
+  );
 };

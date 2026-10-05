@@ -1,8 +1,10 @@
 import { FC, useState } from "react";
 
 import { formatTotalCount } from "@/utils/format";
+import { SubscribedChannel } from "@/store/reducers/subscriptionsSlice";
 
 import AboutChannelModal from "../modals/AboutChannelModal";
+import SubscribeButton from "../buttons/SubscribeButton";
 
 type Props = {
   title: string;
@@ -15,6 +17,7 @@ type Props = {
   viewCount: string;
   subscriberCount: string;
   hiddenSubscriberCount: boolean;
+  subscription: SubscribedChannel;
 };
 
 const ChannelMetadata: FC<Props> = ({
@@ -28,19 +31,22 @@ const ChannelMetadata: FC<Props> = ({
   subscriberCount,
   hiddenSubscriberCount,
   publishedAt,
+  subscription,
 }) => {
   const [isModalOpen, setModalState] = useState(false);
 
   return (
     <>
-      <div className="flex items-center gap-[1.6rem] mt-[1.6rem]">
+      <div className="flex items-start sm:items-center gap-[1.6rem] mt-[1.6rem]">
         <img
           src={avatar}
           alt={title}
-          className="w-[16rem] h-[16rem] shrink-0 rounded-full"
+          className="w-[7.2rem] h-[7.2rem] sm:w-[16rem] sm:h-[16rem] shrink-0 rounded-full"
         />
         <div className="flex flex-col items-start gap-[0.8rem] min-w-0">
-          <h1 className="text-[3.6rem] leading-[5rem] font-bold">{title}</h1>
+          <h1 className="text-[2.4rem] leading-[3.2rem] sm:text-[3.6rem] sm:leading-[5rem] font-bold break-words">
+            {title}
+          </h1>
           <p className="text-[1.4rem] leading-[2rem] text-yt-muted">
             <span className="text-yt-text font-medium">{customUrl}</span>
             {!hiddenSubscriberCount &&
@@ -51,18 +57,12 @@ const ChannelMetadata: FC<Props> = ({
           <button
             type="button"
             onClick={() => setModalState(true)}
-            className="flex max-w-[60rem] text-left text-[1.4rem] leading-[2rem] text-yt-muted"
+            className="flex max-w-full sm:max-w-[60rem] text-left text-[1.4rem] leading-[2rem] text-yt-muted"
           >
             <span className="truncate">{description}</span>
             <span className="shrink-0 text-yt-text font-medium">...more</span>
           </button>
-          <button
-            type="button"
-            title="Coming soon"
-            className="h-[3.6rem] px-[1.6rem] mt-[0.4rem] rounded-full bg-yt-text text-yt-bg text-[1.4rem] font-medium"
-          >
-            Subscribe
-          </button>
+          <SubscribeButton channel={subscription} className="mt-[0.4rem]" />
         </div>
       </div>
       {isModalOpen && (
