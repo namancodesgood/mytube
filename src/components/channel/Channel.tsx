@@ -2,10 +2,12 @@ import { FC } from "react";
 
 import { useQuery } from "react-query";
 
-import { YT_API_URI } from "@/utils/constants";
+import { fetchChannelDetails } from "@/utils/helper";
 
 import ChannelBanner from "@/components/channel/ChannelBanner";
 import ChannelMetadata from "@/components/channel/ChannelMetadata";
+import ChannelVideos from "@/components/channel/ChannelVideos";
+import ChannelPlaylists from "@/components/channel/ChannelPlaylists";
 import Tabs from "@/components/tabs/Tabs";
 import TabSections from "../tabs/TabSections";
 import TabContent from "../tabs/TabContent";
@@ -13,17 +15,6 @@ import { useAppSelector } from "@/store/store";
 
 type Props = {
   channelId: string | string;
-};
-
-const fetchChannelDetails = async (channelId: string) => {
-  const endpoint = `${YT_API_URI}/channels?part=brandingSettings%2CcontentDetails%2Cid%2Clocalizations%2Csnippet%2Cstatistics%2Cstatus%2CtopicDetails&id=${channelId}&key=${
-    import.meta.env.VITE_YT_API_KEY
-  }`;
-
-  const response = await fetch(endpoint);
-  const data = await response.json();
-
-  return data;
 };
 
 const Channel: FC<Props> = ({ channelId }) => {
@@ -36,20 +27,25 @@ const Channel: FC<Props> = ({ channelId }) => {
 
   if (status === "loading") return;
 
-  const { brandingSettings, snippet, statistics } = data.items[0];
+  const channel = data?.items?.[0];
+
+  if (!channel) {
+    return <p className="text-2xl p-6">Couldn't load this channel.</p>;
+  }
+
+  const { brandingSettings, snippet, statistics, contentDetails } = channel;
 
   const { videoCount, viewCount, subscriberCount, hiddenSubscriberCount } =
     statistics;
-  const { title, description, customUrl, publishedAt } = snippet;
+  const { title, description, customUrl, publishedAt, thumbnails } = snippet;
+  const banner = brandingSettings?.image?.bannerExternalUrl;
 
   return (
-    <div className="w-full">
-      <ChannelBanner
-        src={brandingSettings?.image?.bannerExternalUrl}
-        alt={brandingSettings?.channel?.title}
-      />
+    <div className="w-full overflow-y-auto px-6 pb-10">
+      {banner && <ChannelBanner src={banner} alt={title} />}
       <ChannelMetadata
         title={title}
+        avatar={thumbnails.medium.url}
         description={description}
         customUrl={customUrl}
         publishedAt={publishedAt}
@@ -60,12 +56,14 @@ const Channel: FC<Props> = ({ channelId }) => {
       />
       {/* <p className="text-2xl">{JSON.stringify(statistics)}</p> */}
       <Tabs>
-        <TabSections
-          sections={["Home", "Videos", "Playlists", "Community"]}
-          selected={selectedTab}
-        />
+        <TabSections sections={["Videos", "Playlists"]} selected={selectedTab} />
         <TabContent
-          content={[<h1>nello</h1>, <h2>World</h2>, <h3>bayy</h3>]}
+          content={[
+            <ChannelVideos
+              uploadsPlaylistId={contentDetails.relatedPlaylists.uploads}
+            />,
+            <ChannelPlaylists channelId={channelId} />,
+          ]}
           selected={selectedTab}
         />
       </Tabs>

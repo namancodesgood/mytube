@@ -1,4 +1,10 @@
-import { HomeIcon } from "lucide-react";
+import {
+  ClapperboardIcon,
+  DatabaseIcon,
+  HomeIcon,
+  MonitorPlayIcon,
+  MusicIcon,
+} from "lucide-react";
 
 export const SIDEBAR_MENU_ITEMS = [
   {
@@ -6,23 +12,28 @@ export const SIDEBAR_MENU_ITEMS = [
     items: [
       {
         name: "Home",
-        link: "",
+        link: "/",
         icon: HomeIcon,
       },
       {
         name: "Shorts",
         link: "",
-        icon: HomeIcon,
+        icon: ClapperboardIcon,
       },
       {
         name: "Subscriptions",
         link: "",
-        icon: HomeIcon,
+        icon: MonitorPlayIcon,
       },
       {
         name: "YouTube Music",
         link: "",
-        icon: HomeIcon,
+        icon: MusicIcon,
+      },
+      {
+        name: "YouTube API",
+        link: "/youtube-api",
+        icon: DatabaseIcon,
       },
     ],
   },

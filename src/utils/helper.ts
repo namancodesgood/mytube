@@ -1,3 +1,33 @@
+import { YT_API_URI } from "@/utils/constants";
+import { ChannelData } from "@/interfaces/ChannelData";
+
+export const ytFetch = async <T>(
+  resource: string,
+  params: Record<string, string>
+): Promise<T> => {
+  const query = new URLSearchParams({
+    ...params,
+    key: import.meta.env.VITE_YT_API_KEY,
+  });
+  const response = await fetch(`${YT_API_URI}/${resource}?${query}`);
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(
+      `${response.status}: ${data.error?.message ?? response.statusText}`
+    );
+  }
+
+  return data;
+};
+
+// Every ["channelDetails", id] query uses this, so the cached shape is always the same.
+export const fetchChannelDetails = (channelId: string) =>
+  ytFetch<ChannelData>("channels", {
+    part: "snippet,contentDetails,statistics,brandingSettings",
+    id: channelId,
+  });
+
 const formatCount = (count: number, divisor: number, symbol: string) => {
   return count >= divisor
     ? `${(count / divisor).toFixed()}${symbol}`

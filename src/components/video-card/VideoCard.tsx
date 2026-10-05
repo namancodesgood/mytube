@@ -4,7 +4,7 @@ import { useQuery } from "react-query";
 
 import { useAppSelector } from "@/store/store";
 
-import { YT_API_URI } from "@/utils/constants";
+import { fetchChannelDetails } from "@/utils/helper";
 
 import { Link } from "react-router-dom";
 
@@ -18,6 +18,7 @@ import VideoCardMetdataBar from "@/components/video-card/VideoCardMetdataBar";
 import VideoCardShimmer from "@/components/shimmer/VideoCardShimmer";
 
 type Props = {
+  videoId: string;
   thumbnail: string;
   channelTitle: string;
   videoTitle: string;
@@ -29,15 +30,8 @@ type Props = {
   innerRef?: React.Ref<HTMLDivElement>;
 };
 
-const fetchChannelDetails = async (channelId: string) => {
-  const endpoint = `${YT_API_URI}/channels?part=snippet%2CcontentDetails%2Cstatistics&id=${channelId}&key=${
-    import.meta.env.VITE_YT_API_KEY
-  }`;
-  const response = await fetch(endpoint);
-  return await response.json();
-};
-
 const VideoCard = ({
+  videoId,
   thumbnail,
   channelTitle,
   videoTitle,
@@ -68,15 +62,10 @@ const VideoCard = ({
   const srcMatch = embed.match(/src=["'](.*?)["']/);
   const src = srcMatch ? srcMatch[1] : "";
 
-  const { url: channelThumbnail } = data.items[0].snippet.thumbnails.medium;
+  const channelThumbnail = data?.items?.[0]?.snippet.thumbnails.medium.url ?? "";
 
   return (
-    <div
-      className={`flex flex-col transition-all duration-300 ease-in-out ${
-        isSidebarOpen ? "w-[30rem] lg:w-[40rem]" : "w-[33rem]"
-      } gap-3 mx-4 md:mx-0 cursor-pointer`}
-      ref={innerRef}
-    >
+    <div className="flex flex-col gap-3 cursor-pointer" ref={innerRef}>
       <div
         className="relative"
         onMouseOver={() => setIsHover(true)}
@@ -93,6 +82,12 @@ const VideoCard = ({
         ) : (
           <VideoCardPreview src={src} />
         )}
+        {/* Sits over the preview iframe too, which would otherwise swallow the click */}
+        <Link
+          to={`/watch/${videoId}`}
+          aria-label={videoTitle}
+          className="absolute inset-0"
+        />
       </div>
       <div className="flex gap-x-4 items-start mt-2">
         <Link to={`/channel/${channelId}`}>
@@ -100,10 +95,12 @@ const VideoCard = ({
         </Link>
 
         <div className="flex flex-col gap-y-1 mt-1">
-          <VideoCardTitle
-            isSidebarOpen={isSidebarOpen}
-            videoTitle={videoTitle}
-          />
+          <Link to={`/watch/${videoId}`}>
+            <VideoCardTitle
+              isSidebarOpen={isSidebarOpen}
+              videoTitle={videoTitle}
+            />
+          </Link>
 
           <div className="mt-1">
             <VideoCardMetdataBar

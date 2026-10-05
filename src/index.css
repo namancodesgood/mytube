@@ -19,8 +19,11 @@ body {
     @apply bg-slate-600 rounded-lg animate-pulse;
   }
 
-  .w-40rem {
-    width: 40rem;
+  /* As many >=30rem columns as fit, like YouTube's feed */
+  .video-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(30rem, 100%), 1fr));
+    gap: 4rem 1.6rem;
   }
   
   /* Clears the ‘X’ from Internet Explorer */

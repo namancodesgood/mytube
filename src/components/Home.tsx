@@ -46,7 +46,11 @@ const Home: FC = () => {
   }, [inView, hasNextPage, fetchNextPage]);
 
   if (status === "loading") {
-    return <BodyShimmer />;
+    return (
+      <div className="w-full px-6">
+        <BodyShimmer />
+      </div>
+    );
   }
 
   if (status === "error") {
@@ -62,11 +66,12 @@ const Home: FC = () => {
   const videos = data?.pages.flatMap((page) => page.items) || [];
 
   return (
-    <div className="w-full overflow-scroll">
-      <div className="flex flex-wrap justify-around gap-y-6">
-        {videos.map(({ snippet, statistics, contentDetails, player }, idx) => (
+    <div className="w-full overflow-y-auto px-6 pb-10">
+      <div className="video-grid">
+        {videos.map(({ id, snippet, statistics, contentDetails, player }, idx) => (
           <VideoCard
-            key={snippet.title}
+            key={id}
+            videoId={id}
             thumbnail={
               snippet.thumbnails?.medium?.url || snippet.thumbnails?.high?.url
             }

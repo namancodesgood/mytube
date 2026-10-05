@@ -13,6 +13,7 @@ export interface Snippet {
     maxres: Thumbnail
   };
   channelTitle: string;
+  tags?: string[];
   liveBroadcastContent: LiveBroadcastContent;
   publishTime: string;
 }

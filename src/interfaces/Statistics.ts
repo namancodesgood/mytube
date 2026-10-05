@@ -1,6 +1,6 @@
 export interface Statistics {
   viewCount: string;
-  likeCount: string;
+  likeCount?: string;
   favoriteCount: string;
-  commentCount: string;
+  commentCount?: string;
 }

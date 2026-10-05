@@ -5,9 +5,9 @@ import RouterOutlet from "@/routes/RouterOutlet";
 
 function App() {
   return (
-    <div className="fixed w-full h-screen scroll-smooth">
+    <div className="fixed w-full h-screen scroll-smooth flex flex-col">
       <Header />
-      <div className="flex h-full w-full">
+      <div className="flex flex-1 min-h-0 w-full">
         <Sidebar />
         <RouterOutlet />
       </div>

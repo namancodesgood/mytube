@@ -8,6 +8,7 @@ import PrimaryButton from "../buttons/PrimaryButton";
 
 type Props = {
   title: string;
+  avatar: string;
   description: string;
   customUrl: string;
   publishedAt: string;
@@ -19,6 +20,7 @@ type Props = {
 
 const ChannelMetadata: FC<Props> = ({
   title,
+  avatar,
   description,
   customUrl,
   videoCount,
@@ -33,10 +35,7 @@ const ChannelMetadata: FC<Props> = ({
     <>
       <div className="flex items-center my-6 gap-6 h-60">
         <div>
-          <img
-            src="https://yt3.googleusercontent.com/H2iVobIT5dpeQdVaxYO4EbWNeSnSuu-UuiIJKMy0l8l-KVY_bpXe2rQt38mf2KwWN20RgJ2fkQ=s176-c-k-c0x00ffffff-no-rj"
-            className="rounded-full max-w-60"
-          />
+          <img src={avatar} alt={title} className="rounded-full max-w-60" />
         </div>
         <div className="flex flex-col items-start justify-evenly h-full">
           <h2 className="text-5xl font-bold">{title}</h2>

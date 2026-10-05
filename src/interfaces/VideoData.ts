@@ -5,6 +5,7 @@ import { Player } from "@/interfaces/Player";
 
 export interface VideoData {
   items: {
+    id: string;
     snippet: Snippet;
     statistics: Statistics;
     contentDetails: ContentDetails;

@@ -1,19 +1,11 @@
-import { useAppSelector } from "@/store/store";
-
 const shimmerStyles = {
   shimmer: "w-full h-5 shimmer flex-grow",
   avatarShimmer: "w-16 h-14 mt-1 shimmer !rounded-full",
 };
 
 const VideoCardShimmer = () => {
-  const { isSidebarOpen } = useAppSelector((store) => store.globalSlice);
-
   return (
-    <div
-      className={`flex flex-col transition-all duration-300 ease-in-out ${
-        isSidebarOpen ? "w-[30rem] lg:w-[40rem]" : "w-[33rem]"
-      } gap-3`}
-    >
+    <div className="flex flex-col gap-3">
       <div>
         <div className="aspect-video w-full shimmer" />
       </div>

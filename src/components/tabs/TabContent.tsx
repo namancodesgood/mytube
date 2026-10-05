@@ -1,13 +1,13 @@
-import { FC } from "react";
+import { FC, ReactNode } from "react";
 
 type Props = {
-  content: any[];
+  content: ReactNode[];
   selected: number;
 };
 
 const TabContent: FC<Props> = ({ content, selected }) => {
   return (
-    <div>
+    <div className="mt-6">
       {content.map(
         (el, idx) => idx === selected && <span key={idx}>{el}</span>
       )}
